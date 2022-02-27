@@ -42,7 +42,24 @@ contract ZombieFactory {
     //Esta kw también funciona con las funciones declarando que esta pueda ser ejecutada desde cualquier lugar de la red.
 
     //arrays de structs: Podemos declarar arrays de los structs que hayamos definido
-    Zombie[] public zombies;
+    Zombie[] private zombies;
+
+    /**mappings */
+    //Los mappings son una estructura de datos de solidity que nos permite guardar pares key=>value.
+    //Se almacenan similar a como se almacenaría en un array (de por si, almacenamos la información)
+    //de manera similar "mappedValue[key]=value;".
+    //La principal diferencia entre los mappings y los arrays es que los mappings no se pueden recorrer,
+    //solo podemos acceder al valor del mapping si conocemos su key.
+
+    //Inicializando mapping
+    mapping(uint256 => address) public zombieToOwner;
+    // ^ Para crear un mapping tenemos que realizarlo como se observa en el código anterior.
+    // dentro de los paréntesis indicamos primero el tipo de dato que será la "key" y después
+    //de la flecha el tipo de dato que será almacenado en el value.
+    //En el ejemplo superior observamos que la key sera "uint256" y el value será un "address".
+
+    //Apuntador de zombies
+    mapping(address => uint256) public ownerZombieCount;
 
     /**Functions */
     //Las funciones son similares a cualquier función de cualquier lenguaje  de programación pudiendo definir que argumentos
@@ -60,6 +77,23 @@ contract ZombieFactory {
         // La propiedad array.length devuelve el tamaño total del array. Solidity también es de inicio de indice 0
         uint256 id = zombies.length - 1;
 
+        /** msg.sender */
+        //Solidity tiene una serie de variables globales que nos ofrecen caracteristicas propias de la blockchain.
+        //En este caso tenemos "msg.sender". Cuando utilizamos un contrato inteligente de ethereum este contrato
+        //al momento de crearse y almacenarse en la cadena, permanece inactivo hasta que otra cuenta active dicho contrato.
+        //Esto nos permite que cierta información siempre se encuentre presente en los contratos como puede ser "msg.sender".
+        //Como hemos dicho que un contrato siempre debe ser activado por una cuenta (address) externa (ya sea de un address personal
+        //o el adress de otro contrato), la propiedad "msg.sender" siempre debe estar presente en la ejecución.
+        //"msg.sender" devuelve el address que esta ejecutando dicho contrato inteligente.
+
+        //En este caso almacenaremos usando como key el id del zombie a su contrato propietario. De esta manera podemos asignar a cada
+        //zombie un uncio propietario.
+        zombieToOwner[id] = msg.sender;
+
+        //Como ownerZombieCount es un valor de tipo uint256 podemos usar los operadores mátematicos de dicho tipo de dato.
+        //En este caso solo aumentaremos el número de zombies que posee el address.
+        ownerZombieCount[msg.sender]++;
+
         //De esta manera lanzamos el evento que hemos declarado al final del contrato. Por lo que veo. Los contratos de solidity
         //también permite realizar el uso de los hoistings.
         emit NewZombie(id, _name, _dna);
@@ -76,6 +110,13 @@ contract ZombieFactory {
     }
 
     function createRandomZombie(string memory _name) public {
+        /** require.require */
+        //require es una estructura de control parecida a la condición "if" el cual si su sentencia no es verdadera devuelve un error.
+        //la diferencia es que en el caso de que la condición sea "false" revertirá todos los cambios que se hayan hecho en los espacios de memoria de la blockchain.
+        //require se efectua de la siguiente manera:
+        //require(EVALUACIÓN, MENSAJE_DE_ERROR)
+        // ^ la evaluación pasará si es true, de lo contrario, devolverá el error indicado como segundo argumento.
+
         uint256 randDna = _generateRandomDna(_name);
         _createZombie(_name, randDna);
     }
