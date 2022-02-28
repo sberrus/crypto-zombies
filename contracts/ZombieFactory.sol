@@ -42,7 +42,7 @@ contract ZombieFactory {
     //Esta kw también funciona con las funciones declarando que esta pueda ser ejecutada desde cualquier lugar de la red.
 
     //arrays de structs: Podemos declarar arrays de los structs que hayamos definido
-    Zombie[] private zombies;
+    Zombie[] public zombies;
 
     /**mappings */
     //Los mappings son una estructura de datos de solidity que nos permite guardar pares key=>value.
@@ -68,7 +68,14 @@ contract ZombieFactory {
     //convención. Por convención no oficial pero como buena práctica, los parámetros de la función los definimos con un "_"
     //al inicio del namespace para diferenciar las variables propias de la función y las del contrato en sí.
 
-    function _createZombie(string memory _name, uint256 _dna) private {
+    /**VISIBILIDAD INTERNAL */
+    //Aparte de private y public existen otros dos palabras clave para declarar la visibilidad de una función o una variable.
+    //internal: Internal es parecida a private, con la diferencia de que puede ser accedida por los contratos que la hereden.
+    //external: Es similar a public con la diferencia de que esta SOLO puede ser accedida desde fuera del contrato.
+
+    //usamos la palabra clave de visibilidad internal para que esta función sea privada pero pueda ser accedida desde los contratos que la hereden.
+
+    function _createZombie(string memory _name, uint256 _dna) internal {
         //Insertar un zombie en el array de zombies
         zombies.push(Zombie(_name, _dna));
         //Como podemos observar en el código superior, usamos el struct enviandole los dos parámetros que necesita para crear el
@@ -116,6 +123,12 @@ contract ZombieFactory {
         //require se efectua de la siguiente manera:
         //require(EVALUACIÓN, MENSAJE_DE_ERROR)
         // ^ la evaluación pasará si es true, de lo contrario, devolverá el error indicado como segundo argumento.
+
+        //usando require en este contrato.
+        require(
+            ownerZombieCount[msg.sender] == 0,
+            "Esta cuenta ya tiene un zombie asignado"
+        );
 
         uint256 randDna = _generateRandomDna(_name);
         _createZombie(_name, randDna);
