@@ -30,7 +30,11 @@ contract ZombieFeed is ZombieFactory {
     //                               ^ Como podemos observar enviamos dentro de los paréntesis la dirección
     //                               del contrato que vamos a consumir.
 
-    function feedAndMultiply(uint256 _zombieId, uint256 _targetDna) public {
+    function feedAndMultiply(
+        uint256 _zombieId,
+        uint256 _targetDna,
+        string memory _species
+    ) public {
         //Usamos require para comprobar que el owner del zombie sea el mismo que msg.sender
         require(
             msg.sender == zombieToOwner[_zombieId],
@@ -44,7 +48,17 @@ contract ZombieFeed is ZombieFactory {
 
         uint256 newDna = myZombie.dna + _targetDna / 2;
 
+        if (keccak256(abi.encode(_species)) == keccak256("kitty")) {
+            newDna = newDna - (newDna % 100) + 99;
+        }
+
         _createZombie("NoName", newDna);
+    }
+
+    function feedOnKitty(uint256 _zombieId, uint256 _kittyId) public {
+        uint256 kittyDna;
+        (, , , , , , , , , kittyDna) = kittieContract.getKitty(_kittyId);
+        feedAndMultiply(_zombieId, kittyDna, "kitty");
     }
 }
 
